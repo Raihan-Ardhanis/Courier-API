@@ -15,6 +15,7 @@ composer install
 Copy-Item .env.example .env
 php artisan key:generate
 php artisan migrate
+php artisan db:seed
 ```
 
 The project is configured to use SQLite by default. If
@@ -88,6 +89,10 @@ App\Models\User::create([
 ```
 
 The user password is hashed by the model. Do not commit real credentials.
+
+For local development, `php artisan db:seed` creates 20 sample couriers and a
+demo login account: `test@example.com` / `password`. This default account is for
+local development only; do not use it in production.
 
 ### List options
 
