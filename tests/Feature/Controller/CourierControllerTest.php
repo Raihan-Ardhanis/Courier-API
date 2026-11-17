@@ -3,6 +3,7 @@
 namespace Tests\Feature\Controller;
 
 use App\Models\Courier;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -64,6 +65,31 @@ class CourierControllerTest extends TestCase
             ->assertJsonPath('data.1.name', 'Budiono Hadi Agung');
     }
 
+    public function test_index_can_sort_by_level_or_name_in_both_directions(): void
+    {
+        Courier::factory()->create(['name' => 'Charlie', 'level' => 2]);
+        Courier::factory()->create(['name' => 'Alice', 'level' => 5]);
+        Courier::factory()->create(['name' => 'Bob', 'level' => 1]);
+
+        $this->getJson('/api/couriers?sort=level&direction=asc&per_page=3')
+            ->assertOk()
+            ->assertJsonPath('data.0.name', 'Bob')
+            ->assertJsonPath('data.1.name', 'Charlie')
+            ->assertJsonPath('data.2.name', 'Alice');
+
+        $this->getJson('/api/couriers?sort=level&direction=desc&per_page=3')
+            ->assertOk()
+            ->assertJsonPath('data.0.name', 'Alice')
+            ->assertJsonPath('data.1.name', 'Charlie')
+            ->assertJsonPath('data.2.name', 'Bob');
+
+        $this->getJson('/api/couriers?sort=name&direction=desc&per_page=3')
+            ->assertOk()
+            ->assertJsonPath('data.0.name', 'Charlie')
+            ->assertJsonPath('data.1.name', 'Bob')
+            ->assertJsonPath('data.2.name', 'Alice');
+    }
+
     public function test_store_validates_and_persists_a_courier(): void
     {
         $payload = [
@@ -76,7 +102,8 @@ class CourierControllerTest extends TestCase
             'is_active' => true,
         ];
 
-        $this->postJson('/api/couriers', $payload)
+        $this->withToken($this->authenticatedToken())
+            ->postJson('/api/couriers', $payload)
             ->assertCreated()
             ->assertJsonPath('data.name', 'Budi Agung')
             ->assertJsonPath('data.level', 3);
@@ -93,11 +120,12 @@ class CourierControllerTest extends TestCase
     {
         Courier::factory()->create(['phone' => '081234567890']);
 
-        $this->postJson('/api/couriers', [
-            'name' => 'New Courier',
-            'phone' => '081234567890',
-            'level' => 6,
-        ])
+        $this->withToken($this->authenticatedToken())
+            ->postJson('/api/couriers', [
+                'name' => 'New Courier',
+                'phone' => '081234567890',
+                'level' => 6,
+            ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['phone', 'level']);
     }
@@ -107,6 +135,7 @@ class CourierControllerTest extends TestCase
         $courier = Courier::factory()->create([
             'name' => 'Budi Agung',
             'level' => 4,
+            'is_active' => true,
         ]);
 
         $this->getJson("/api/couriers/{$courier->id}")
@@ -126,11 +155,14 @@ class CourierControllerTest extends TestCase
             'level' => 2,
         ]);
 
-        $this->patchJson("/api/couriers/{$courier->id}", [
-            'phone' => '081234567890',
-            'email' => 'budi@example.com',
-            'level' => 3,
-        ])
+        $token = $this->authenticatedToken();
+
+        $this->withToken($token)
+            ->patchJson("/api/couriers/{$courier->id}", [
+                'phone' => '081234567890',
+                'email' => 'budi@example.com',
+                'level' => 3,
+            ])
             ->assertOk()
             ->assertJsonPath('data.level', 3);
 
@@ -141,7 +173,8 @@ class CourierControllerTest extends TestCase
             'level' => 3,
         ]);
 
-        $this->patchJson("/api/couriers/{$courier->id}", ['level' => 0])
+        $this->withToken($token)
+            ->patchJson("/api/couriers/{$courier->id}", ['level' => 0])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['level']);
     }
@@ -150,9 +183,17 @@ class CourierControllerTest extends TestCase
     {
         $courier = Courier::factory()->create();
 
-        $this->deleteJson("/api/couriers/{$courier->id}")
+        $this->withToken($this->authenticatedToken())
+            ->deleteJson("/api/couriers/{$courier->id}")
             ->assertNoContent();
 
         $this->assertDatabaseMissing('couriers', ['id' => $courier->id]);
+    }
+
+    private function authenticatedToken(): string
+    {
+        return User::factory()->create()
+            ->createToken('courier-controller-test')
+            ->plainTextToken;
     }
 }

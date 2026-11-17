@@ -15,7 +15,7 @@ class CourierController extends Controller
         $validated = $request->validate([
             'search' => ['sometimes', 'string', 'max:255'],
             'level' => ['sometimes', 'string', 'regex:/^[1-5](,[1-5])*$/'],
-            'sort' => ['sometimes', 'in:registered_at'],
+            'sort' => ['sometimes', 'in:name,level,registered_at'],
             'direction' => ['sometimes', 'in:asc,desc'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
         ]);
@@ -34,11 +34,11 @@ class CourierController extends Controller
             $query->whereIn('level', array_map('intval', explode(',', $validated['level'])));
         }
 
-        if (($validated['sort'] ?? null) === 'registered_at') {
-            $query->orderBy('created_at', $validated['direction'] ?? 'desc');
-        } else {
-            $query->orderBy('name');
-        }
+        $sort = $validated['sort'] ?? 'name';
+        $column = $sort === 'registered_at' ? 'created_at' : $sort;
+        $defaultDirection = $sort === 'registered_at' ? 'desc' : 'asc';
+
+        $query->orderBy($column, $validated['direction'] ?? $defaultDirection);
 
         $couriers = $query
             ->orderBy('id')

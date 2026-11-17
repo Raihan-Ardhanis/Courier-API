@@ -1,70 +1,6 @@
-PS C:\Project\Courir> git init
-Initialized empty Git repository in C:/Project/Courir/.git/
-PS C:\Project\Courir> git status --short --ignored
-?? .editorconfig
-?? .env.example
-?? .gitattributes
-?? .gitignore
-?? .npmrc
-?? AGENTS.md
-?? CLAUDE.md
-?? README.md
-?? app/
-?? artisan
-?? bootstrap/
-?? composer.json
-?? composer.lock
-?? config/
-?? database/
-?? package.json
-?? phpunit.xml
-?? public/
-?? resources/
-?? routes/
-?? storage/
-?? tests/
-?? vite.config.js
-!! .env
-!! .phpunit.result.cache
-!! bootstrap/cache/packages.php
-!! bootstrap/cache/services.php
-!! database/database.sqlite
-!! storage/framework/views/aca99790dc77e6415939620349ca43ee.php
-!! vendor/PS C:\Project\Courir> git init
-Initialized empty Git repository in C:/Project/Courir/.git/
-PS C:\Project\Courir> git status --short --ignored
-?? .editorconfig
-?? .env.example
-?? .gitattributes
-?? .gitignore
-?? .npmrc
-?? AGENTS.md
-?? CLAUDE.md
-?? README.md
-?? app/
-?? artisan
-?? bootstrap/
-?? composer.json
-?? composer.lock
-?? config/
-?? database/
-?? package.json
-?? phpunit.xml
-?? public/
-?? resources/
-?? routes/
-?? storage/
-?? tests/
-?? vite.config.js
-!! .env
-!! .phpunit.result.cache
-!! bootstrap/cache/packages.php
-!! bootstrap/cache/services.php
-!! database/database.sqlite
-!! storage/framework/views/aca99790dc77e6415939620349ca43ee.php
-!! vendor/# Courier Management API
+# Courier Management API
 
-A Laravel JSON API for managing couriers, including levels 1–5, searchable and
+A Laravel JSON API for managing couriers, including levels 1-5, searchable and
 filterable listings, pagination, and CRUD operations.
 
 ## Requirements
@@ -106,25 +42,68 @@ All endpoints are under `/api`. Send JSON request bodies with
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | `GET` | `/api/couriers` | List couriers |
-| `POST` | `/api/couriers` | Create a courier |
+| `POST` | `/api/couriers` | Create a courier (authentication required) |
 | `GET` | `/api/couriers/{courier}` | Show one courier |
-| `PUT`, `PATCH` | `/api/couriers/{courier}` | Update a courier |
-| `DELETE` | `/api/couriers/{courier}` | Delete a courier |
+| `PUT`, `PATCH` | `/api/couriers/{courier}` | Update a courier (authentication required) |
+| `DELETE` | `/api/couriers/{courier}` | Delete a courier (authentication required) |
+| `POST` | `/api/login` | Log in and issue an API token |
+| `POST` | `/api/logout` | Revoke the current API token |
+
+### Authentication
+
+Courier list and detail endpoints are public. Creating, updating, or deleting a
+courier requires a Sanctum personal access token. There is no public registration
+endpoint; provision accounts through a trusted administrative process.
+
+Log in with an existing user's email and password:
+
+```text
+POST /api/login
+```
+
+```json
+{
+  "email": "admin@example.com",
+  "password": "your-password"
+}
+```
+
+The response contains a token and basic user details. Send that token on
+protected requests as `Authorization: Bearer <token>`. Log out with
+`POST /api/logout` using the same bearer token; logout revokes that token.
+Login is limited to five attempts per minute per client.
+
+Create an initial trusted user from the project directory with Tinker:
+
+```powershell
+php artisan tinker
+```
+
+```php
+App\Models\User::create([
+    'name' => 'Administrator',
+    'email' => 'admin@example.com',
+    'password' => 'replace-with-a-strong-password',
+]);
+```
+
+The user password is hashed by the model. Do not commit real credentials.
 
 ### List options
 
 - `search`: match every whitespace-separated term against the courier name.
   For example, `?search=budi+agung` can match `Budiono Hadi Agung`.
 - `level`: comma-separated levels from 1 through 5, for example `?level=2,3`.
-- `sort=registered_at`: sort by registration time (newest first by default).
-  Use `direction=asc` or `direction=desc` to choose the date order.
+- `sort`: choose `name` (default), `level`, or `registered_at`. The default
+  direction is ascending for name/level and descending (newest first) for
+  registration time. Use `direction=asc` or `direction=desc` to override it.
 - `per_page`: page size from 1 to 100 (default 15); Laravel pagination links
   and metadata are included in the response.
 
 Example:
 
 ```text
-GET /api/couriers?search=budi+agung&level=2,3&sort=registered_at&per_page=10
+GET /api/couriers?search=budi+agung&level=2,3&sort=level&direction=desc&per_page=10
 ```
 
 ### Courier fields
