@@ -118,9 +118,19 @@ GET /api/couriers?search=budi+agung&level=2,3&sort=level&direction=desc&per_page
 - `email` (optional, valid and unique)
 - `address` (optional)
 - `vehicle_type` (optional, maximum 80 characters)
-- `plate_number` (optional, maximum 20 characters)
+- `plate_number` (optional, maximum 20 characters, unique)
 - `level` (required integer from 1 to 5)
 - `is_active` (optional boolean; defaults to `true`)
 
 Create and update requests are validated. Validation errors return HTTP 422;
 successful creation returns HTTP 201, and deletion returns HTTP 204.
+
+To update a courier's plate number and active status, send
+`PATCH /api/couriers/{courier}` with a bearer token and JSON such as:
+
+```json
+{
+  "plate_number": "B 1234 XYZ",
+  "is_active": false
+}
+```

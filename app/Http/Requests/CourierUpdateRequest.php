@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Validation\Rule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CourierUpdateRequest extends FormRequest
 {
@@ -41,7 +41,13 @@ class CourierUpdateRequest extends FormRequest
             ],
             'address' => ['sometimes', 'nullable', 'string', 'max:1000'],
             'vehicle_type' => ['sometimes', 'nullable', 'string', 'max:80'],
-            'plate_number' => ['sometimes', 'nullable', 'string', 'max:20'],
+            'plate_number' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'max:20',
+                Rule::unique('couriers', 'plate_number')->ignore($this->route('courier')),
+            ],
             'level' => ['sometimes', 'required', 'integer', 'between:1,5'],
             'status' => ['sometimes', 'in:aktif,nonaktif'],
             'is_active' => ['sometimes', 'boolean'],
