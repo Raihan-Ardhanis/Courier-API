@@ -98,6 +98,7 @@ class CourierControllerTest extends TestCase
             'email' => 'budi@example.com',
             'address' => 'Jakarta',
             'vehicle_type' => 'Motorcycle',
+            'plate_number' => 'B 1234 XYZ',
             'level' => 3,
             'is_active' => true,
         ];
@@ -112,6 +113,7 @@ class CourierControllerTest extends TestCase
             'name' => 'Budi Agung',
             'phone' => '081234567890',
             'email' => 'budi@example.com',
+            'plate_number' => 'B 1234 XYZ',
             'level' => 3,
         ]);
     }
@@ -161,16 +163,22 @@ class CourierControllerTest extends TestCase
             ->patchJson("/api/couriers/{$courier->id}", [
                 'phone' => '081234567890',
                 'email' => 'budi@example.com',
+                'plate_number' => 'B 1234 ABC',
                 'level' => 3,
+                'is_active' => false,
             ])
             ->assertOk()
-            ->assertJsonPath('data.level', 3);
+            ->assertJsonPath('data.level', 3)
+            ->assertJsonPath('data.plate_number', 'B 1234 ABC')
+            ->assertJsonPath('data.is_active', false);
 
         $this->assertDatabaseHas('couriers', [
             'id' => $courier->id,
             'phone' => '081234567890',
             'email' => 'budi@example.com',
+            'plate_number' => 'B 1234 ABC',
             'level' => 3,
+            'is_active' => false,
         ]);
 
         $this->withToken($token)

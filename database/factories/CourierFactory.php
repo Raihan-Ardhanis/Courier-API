@@ -23,6 +23,7 @@ class CourierFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'address' => fake()->address(),
             'vehicle_type' => fake()->randomElement(['Motorcycle', 'Car', 'Van']),
+            'plate_number' => strtoupper(fake()->unique()->bothify('?? #### ??')),
             'level' => fake()->numberBetween(1, 5),
             'is_active' => fake()->boolean(90),
         ];

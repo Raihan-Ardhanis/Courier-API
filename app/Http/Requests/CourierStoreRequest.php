@@ -28,6 +28,7 @@ class CourierStoreRequest extends FormRequest
             'email' => ['nullable', 'email', 'max:255', 'unique:couriers,email'],
             'address' => ['nullable', 'string', 'max:1000'],
             'vehicle_type' => ['nullable', 'string', 'max:80'],
+            'plate_number' => ['nullable', 'string', 'max:20', 'unique:couriers,plate_number'],
             'level' => ['required', 'integer', 'between:1,5'],
             'is_active' => ['sometimes', 'boolean'],
         ];

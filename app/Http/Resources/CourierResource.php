@@ -21,6 +21,7 @@ class CourierResource extends JsonResource
             'email' => $this->email,
             'address' => $this->address,
             'vehicle_type' => $this->vehicle_type,
+            'plate_number' => $this->plate_number,
             'level' => $this->level,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at,
