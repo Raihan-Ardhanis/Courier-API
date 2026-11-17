@@ -41,8 +41,24 @@ class CourierUpdateRequest extends FormRequest
             ],
             'address' => ['sometimes', 'nullable', 'string', 'max:1000'],
             'vehicle_type' => ['sometimes', 'nullable', 'string', 'max:80'],
+            'plate_number' => ['sometimes', 'nullable', 'string', 'max:20'],
             'level' => ['sometimes', 'required', 'integer', 'between:1,5'],
+            'status' => ['sometimes', 'in:aktif,nonaktif'],
             'is_active' => ['sometimes', 'boolean'],
         ];
+    }
+
+    public function validated($key = null, $default = null): mixed
+    {
+        $validated = parent::validated($key, $default);
+
+        if (is_array($validated)) {
+            if (isset($validated['status']) && !isset($validated['is_active'])) {
+                $validated['is_active'] = $validated['status'] === 'aktif';
+            }
+            unset($validated['status']);
+        }
+
+        return $validated;
     }
 }

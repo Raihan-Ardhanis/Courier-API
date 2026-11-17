@@ -28,8 +28,24 @@ class CourierStoreRequest extends FormRequest
             'email' => ['nullable', 'email', 'max:255', 'unique:couriers,email'],
             'address' => ['nullable', 'string', 'max:1000'],
             'vehicle_type' => ['nullable', 'string', 'max:80'],
+            'plate_number' => ['nullable', 'string', 'max:20'],
             'level' => ['required', 'integer', 'between:1,5'],
+            'status' => ['sometimes', 'in:aktif,nonaktif'],
             'is_active' => ['sometimes', 'boolean'],
         ];
+    }
+
+    public function validated($key = null, $default = null): mixed
+    {
+        $validated = parent::validated($key, $default);
+
+        if (is_array($validated)) {
+            if (isset($validated['status']) && !isset($validated['is_active'])) {
+                $validated['is_active'] = $validated['status'] === 'aktif';
+            }
+            unset($validated['status']);
+        }
+
+        return $validated;
     }
 }

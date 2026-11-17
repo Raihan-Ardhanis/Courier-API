@@ -98,6 +98,7 @@ class CourierControllerTest extends TestCase
             'email' => 'budi@example.com',
             'address' => 'Jakarta',
             'vehicle_type' => 'Motorcycle',
+            'plate_number' => 'B 1234 XYZ',
             'level' => 3,
             'is_active' => true,
         ];
@@ -106,12 +107,14 @@ class CourierControllerTest extends TestCase
             ->postJson('/api/couriers', $payload)
             ->assertCreated()
             ->assertJsonPath('data.name', 'Budi Agung')
+            ->assertJsonPath('data.plate_number', 'B 1234 XYZ')
             ->assertJsonPath('data.level', 3);
 
         $this->assertDatabaseHas('couriers', [
             'name' => 'Budi Agung',
             'phone' => '081234567890',
             'email' => 'budi@example.com',
+            'plate_number' => 'B 1234 XYZ',
             'level' => 3,
         ]);
     }
@@ -161,15 +164,18 @@ class CourierControllerTest extends TestCase
             ->patchJson("/api/couriers/{$courier->id}", [
                 'phone' => '081234567890',
                 'email' => 'budi@example.com',
+                'plate_number' => 'N 4321 ABC',
                 'level' => 3,
             ])
             ->assertOk()
+            ->assertJsonPath('data.plate_number', 'N 4321 ABC')
             ->assertJsonPath('data.level', 3);
 
         $this->assertDatabaseHas('couriers', [
             'id' => $courier->id,
             'phone' => '081234567890',
             'email' => 'budi@example.com',
+            'plate_number' => 'N 4321 ABC',
             'level' => 3,
         ]);
 

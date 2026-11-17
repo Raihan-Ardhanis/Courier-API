@@ -16,6 +16,7 @@ class Courier extends Model
         'email',
         'address',
         'vehicle_type',
+        'plate_number',
         'level',
         'is_active',
     ];
